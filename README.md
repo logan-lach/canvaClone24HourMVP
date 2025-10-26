@@ -8,7 +8,7 @@ My attempt at completing Gauntlet AI's first challenge of Cohort 3.
 
 This is a hard gate. To pass the MVP checkpoint, you must have:
 
-- [ ] Basic canvas with pan/zoom
+- [x] Basic canvas with pan/zoom - Total time to complete 1:55:13
 - [ ] At least one shape type (rectangle, circle, or text)
 - [ ] Ability to create and move objects
 - [ ] Real-time sync between 2+ users
