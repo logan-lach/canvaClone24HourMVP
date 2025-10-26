@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Stage, Layer, Line } from 'react-konva';
+import { Stage, Layer, Line, Rect } from 'react-konva';
 
 const Canvas = () => {
   const stageRef = useRef<any>(null);
@@ -15,9 +15,21 @@ const Canvas = () => {
     y: height / 2
   });
 
-  // Calculate world coordinates at screen center
-  const worldX = -(position.x - width / 2);
-  const worldY = -(position.y - height / 2);
+  // Zoom state - 1.0 = 100%
+  const [zoom, setZoom] = useState(1.0);
+
+  // Zoom handlers
+  const handleZoomIn = () => {
+    setZoom(prev => prev + 0.1); // +10% additive
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(0.1, prev - 0.1)); // -10% additive, minimum 10%
+  };
+
+  // Calculate world coordinates at screen center (zoom-aware)
+  const worldX = -(position.x - width / 2) / zoom;
+  const worldY = -(position.y - height / 2) / zoom;
 
   // Grid settings
   const gridSize = 50; // Grid cell size in pixels
@@ -26,11 +38,11 @@ const Canvas = () => {
   const generateGrid = () => {
     const lines = [];
 
-    // Calculate visible world bounds
-    const startX = -position.x;
-    const endX = -position.x + width;
-    const startY = -position.y;
-    const endY = -position.y + height;
+    // Calculate visible world bounds (accounting for zoom)
+    const startX = -position.x / zoom;
+    const endX = (-position.x + width) / zoom;
+    const startY = -position.y / zoom;
+    const endY = (-position.y + height) / zoom;
 
     // Find first/last grid line positions
     const firstVertical = Math.floor(startX / gridSize) * gridSize;
@@ -84,6 +96,32 @@ const Canvas = () => {
         Position: ({Math.round(worldX)}, {Math.round(worldY)})
       </div>
 
+      {/* Zoom controls */}
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <button onClick={handleZoomOut}>-</button>
+        <span style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '4px',
+          fontFamily: 'monospace',
+          fontSize: '14px',
+          minWidth: '60px',
+          textAlign: 'center'
+        }}>
+          {Math.round(zoom * 100)}%
+        </span>
+        <button onClick={handleZoomIn}>+</button>
+      </div>
+
       <Stage
         ref={stageRef}
         width={width}
@@ -91,6 +129,8 @@ const Canvas = () => {
         draggable={true}
         x={position.x}
         y={position.y}
+        scaleX={zoom}
+        scaleY={zoom}
         onDragMove={(e) => {
           setPosition({
             x: e.target.x(),
@@ -100,6 +140,17 @@ const Canvas = () => {
       >
         <Layer>
           {generateGrid()}
+
+          {/* Test rectangle at world origin (0, 0) */}
+          <Rect
+            x={-50}
+            y={-50}
+            width={100}
+            height={100}
+            fill="rgba(255, 0, 0, 0.5)"
+            stroke="red"
+            strokeWidth={2}
+          />
         </Layer>
       </Stage>
     </div>
