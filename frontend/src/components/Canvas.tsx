@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { Stage, Layer, Line, Rect } from 'react-konva';
-
+import Sidebar from './Sidebar';
+import CoordinateDisplay from './CoordinateDisplay';
+import ZoomControls from './ZoomControls';
 const Canvas = () => {
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,48 +81,9 @@ const Canvas = () => {
 
   return (
     <div ref={containerRef} style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      {/* Coordinate display overlay */}
-      <div style={{
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        background: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '8px 12px',
-        borderRadius: '4px',
-        fontFamily: 'monospace',
-        fontSize: '14px',
-        pointerEvents: 'none',
-        zIndex: 1000
-      }}>
-        Position: ({Math.round(worldX)}, {Math.round(worldY)})
-      </div>
-
-      {/* Zoom controls */}
-      <div style={{
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        display: 'flex',
-        gap: '8px',
-        alignItems: 'center',
-        zIndex: 1000
-      }}>
-        <button onClick={handleZoomOut}>-</button>
-        <span style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '8px 12px',
-          borderRadius: '4px',
-          fontFamily: 'monospace',
-          fontSize: '14px',
-          minWidth: '60px',
-          textAlign: 'center'
-        }}>
-          {Math.round(zoom * 100)}%
-        </span>
-        <button onClick={handleZoomIn}>+</button>
-      </div>
+      <Sidebar />
+      <CoordinateDisplay worldX={worldX} worldY={worldY} />
+      <ZoomControls zoom={zoom} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
 
       <Stage
         ref={stageRef}
