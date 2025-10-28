@@ -1,6 +1,16 @@
-const ShapeButton = ({ children }: { children: React.ReactNode }) => {
+const ShapeButton = ({
+  children,
+  shapeType,
+  onDragStart
+}: {
+  children: React.ReactNode;
+  shapeType: string;
+  onDragStart: (type: string) => void;
+}) => {
   return (
     <div
+      draggable="true"
+      onDragStart={() => onDragStart(shapeType)}
       style={{
         width: '50px',
         height: '50px',

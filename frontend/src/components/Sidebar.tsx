@@ -1,6 +1,6 @@
 import ShapeButton from './ShapeButton';
 
-const Sidebar = () => {
+const Sidebar = ({ onDragStart }: { onDragStart: (type: string) => void }) => {
   return (
     <div style={{
       position: 'absolute',
@@ -19,7 +19,7 @@ const Sidebar = () => {
       zIndex: 1000
     }}>
       {/* Rectangle */}
-      <ShapeButton>
+      <ShapeButton shapeType="rect" onDragStart={onDragStart}>
         <div style={{
           width: '30px',
           height: '20px',
@@ -29,7 +29,7 @@ const Sidebar = () => {
       </ShapeButton>
 
       {/* Circle */}
-      <ShapeButton>
+      <ShapeButton shapeType="circle" onDragStart={onDragStart}>
         <div style={{
           width: '25px',
           height: '25px',
@@ -39,7 +39,7 @@ const Sidebar = () => {
       </ShapeButton>
 
       {/* Text */}
-      <ShapeButton>
+      <ShapeButton shapeType="text" onDragStart={onDragStart}>
         <span style={{
           color: 'white',
           fontFamily: 'monospace',
