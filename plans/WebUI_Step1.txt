@@ -1,0 +1,31 @@
+# Collaborative Canvas MVP - Implementation Plan
+
+## After each step: Manually test and review code
+
+---
+
+## Step 0: Basic project setup
+* Create basic scaffolding for a react project
+* Create an empty "canvas" for our project. For right now this should just be a webpage with a grid background on it
+* This should use the konva library for ease of use and help with object storage/manipulation layer
+
+---
+
+## Step 1: Setup "canvas" structure of the website
+* The page should now allow for infinite scrolling both in the X and Y axis
+* This will be done by mouse click and drag. A user will click on the screen, and as they hold the click and move the cusor, the canvas should move in that way
+* We should store the current user position in react state
+* We should do this by printing the "current" x,y coordinates of the website. On initial page load, the center of the screen 0,0, and everytime we scroll in any direction we should see this number be updated. We should measure by pixel count how much we are moving the window
+
+---
+
+## Step 2: Setup zooming feature of the website
+* Add two buttons with a plus and a minus that will zoom into the center of our current window (should probably be something like a 10% zoom each time we click)
+* Store user current zoom in react state 
+* We will re-render everytime the user clicks on one of the zoom buttons. 
+* These zooms will only affect the objects on the canvas. Create a dummy "rectangle" that we will use as reference to test this zoom. We should be able to click our zoom buttons and see that the "rectangle" gets bigger and smaller as we press this zoom button as well as the grid reacting to it
+* This zooming feature should affect our coordinate traversal as well. When zoomed in (110%), moving the mouse 100 pixels on screen traverses LESS world distance. When zoomed out (90%), moving the mouse 100 pixels on screen traverses MORE world distance. The relationship is: `worldDistance = screenDistance / zoom`
+
+---
+
+**This covers the first MVP requirement: "Basic canvas with pan/zoom" ✓**

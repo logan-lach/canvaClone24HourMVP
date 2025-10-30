@@ -1,0 +1,16 @@
+Canvas Shape Creation - Implementation Plan
+Step 1: Create accordion menu of shapes
+
+On the left side of the users screen, I want a fixed vertical menu of available shapes
+The shapes should be a Circle, a Rectangle, and a text box
+You should pull from the Konva api wherever possible (I believe they all can be made)
+The options should have pictures of the available shapes or options (think how draw.io has available options in the sidebar)
+
+
+Step 2: Ability to add shapes to the canvas
+
+This feature should allow users to drag one of the available options created in the above step onto the canvas
+These should be of fixed size and not editable as of right now. All we want to do is have users create a fixed size object that is able to be dragged onto the screen
+Go with the drag ability from the vertical bar. I want you to display a drag preview of what it would look like if the user let go and placed the shape there along with any relevant coordinate translation.
+Base the shape of the objects based on 100% zoom. If we try to place an object when the current window has 80% zoom, it should be scaled accordingly. Make each object have a collection of default sizes and leave it at that
+Users will not dynamically resize created shapes. That will come as a later feature

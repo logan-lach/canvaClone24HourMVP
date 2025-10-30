@@ -1,7 +1,7 @@
 {
-  "name": "frontend",
+  "name": "canva-clone",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "hono": "^4.7.11",
     "konva": "^10.0.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

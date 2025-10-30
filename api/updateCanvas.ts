@@ -1,20 +1,20 @@
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 
-const app = new Hono().basePath('/api');
+const app = new Hono();
 
-app.post('/signup', async (c) => {
+app.post('/updateCanvas', async (c) => {
   try {
     const body = await c.req.json();
-    const { username, password } = body;
+    const { canvasData } = body;
 
-    // Mock signup - just return success
-    console.log(`Signup attempt: ${username}`);
+    // Mock canvas update - just return success
+    console.log('Canvas update received:', canvasData ? 'data present' : 'no data');
 
     return c.json({
       success: true,
-      userId: 'user-' + Math.random().toString(36).substring(7),
-      message: 'Signup successful (mock)'
+      saved: true,
+      message: 'Canvas updated successfully (mock)'
     });
   } catch (error) {
     return c.json({

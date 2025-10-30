@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 
-const app = new Hono().basePath('/api');
+const app = new Hono();
 
 app.post('/login', async (c) => {
   try {
