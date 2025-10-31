@@ -1,0 +1,64 @@
+Step 0: Generate the sign up page
+
+Make a generalized sign up page for users to create an account for our website
+Don't worry about a logo, nothing like that. Just a page with a white background, the form centered in the middle, with email/username/password fields and a submit button
+Setup the react router to be able to serve this page
+Update the react router to serve this new page at /signup
+Implementation: Use Supabase Auth's signUp() method with email, password, and username in metadata
+
+Step 1: Generate the login page
+
+Make a generalized login page for users to login to the website
+Don't worry about a logo, nothing like that. Just a page with a white background, the form centered in the middle, with email/password fields and a submit button
+Add a link at the bottom of the form to the create an account page. Have the react router redirect us to /signup
+Try to keep the current theme, I think we're leaning on a pretty black/white scheme so don't do anything crazy
+Implementation: Use Supabase Auth's signInWithPassword() method
+
+Step 2: Add a login button onto our root page
+
+Add the login button to our main page at /
+For right now, lets put it to the left of the zoom functionality
+When the user clicks on the login button, use the react router to send us to the login page you generated in step 1
+Do not worry about what happens whenever a user is already logged in. We will address this in a later step
+
+Step 3: Handle the signup process
+
+When the user hits submit on the signin page, call Supabase Auth's signUp() method
+Implementation:
+
+javascript  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: password,
+    options: { data: { username: username } }
+  });
+
+Store the returned user object in React state/context
+Supabase automatically creates the session and stores JWT tokens
+
+Step 4: Handle the login process
+
+When a user hits submit, call Supabase Auth's signInWithPassword() method
+Implementation:
+
+javascript  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+Supabase handles all token management automatically
+On success, redirect to canvas; on failure, show error message
+
+Step 5: Set up Auth Context (Bonus - makes everything easier)
+
+Create an AuthContext that wraps the app
+Use supabase.auth.onAuthStateChange() to listen for auth events
+Use supabase.auth.getSession() on app load to restore sessions
+This handles persistence across page refreshes automatically
+
+Benefits of this approach:
+
+No backend auth endpoints needed (Supabase handles everything)
+Automatic integration with broadcast channels (user identity available)
+Session persistence handled automatically
+JWT tokens managed by Supabase
+Ready for Row Level Security on database tables
