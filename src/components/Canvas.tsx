@@ -3,22 +3,12 @@ import { Stage, Layer, Line, Rect, Circle, Text } from 'react-konva';
 import Sidebar from './Sidebar';
 import CoordinateDisplay from './CoordinateDisplay';
 import ZoomControls from './ZoomControls';
-
-type Shape = {
-  id: string;
-  type: 'rect' | 'circle' | 'text';
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-  radius?: number;
-  text?: string;
-  fill: string;
-};
+import { useCanvasSync } from '../contexts/CanvasSyncContext';
 
 const Canvas = () => {
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { shapes, addShape, updateShape, isLoading } = useCanvasSync();
 
   // Get window dimensions
   const width = window.innerWidth;
@@ -32,9 +22,6 @@ const Canvas = () => {
 
   // Zoom state - 1.0 = 100%
   const [zoom, setZoom] = useState(1.0);
-
-  // Shapes state
-  const [shapes, setShapes] = useState<Shape[]>([]);
 
   // Drag state
   const [draggingType, setDraggingType] = useState<string | null>(null);
@@ -60,37 +47,12 @@ const Canvas = () => {
     };
   };
 
-  // Add shape to canvas
-  const addShape = (type: 'rect' | 'circle' | 'text', worldX: number, worldY: number) => {
-    const baseShape = {
-      id: `shape-${Date.now()}`,
-      type,
-      x: worldX,
-      y: worldY
-    };
-
-    let newShape: Shape;
-
-    if (type === 'rect') {
-      newShape = { ...baseShape, width: 100, height: 100, fill: 'rgba(0, 100, 255, 0.5)' };
-    } else if (type === 'circle') {
-      newShape = { ...baseShape, radius: 50, fill: 'rgba(0, 255, 100, 0.5)' };
-    } else {
-      newShape = { ...baseShape, text: 'Text', fill: 'black' };
-    }
-
-    setShapes(prev => [...prev, newShape]);
-  };
-
-  // Update shape position after drag
-  const updateShape = (id: string, newX: number, newY: number) => {
-    setShapes(prev => prev.map(shape =>
-      shape.id === id ? { ...shape, x: newX, y: newY } : shape
-    ));
-  };
-
   // Grid settings
   const gridSize = 50; // Grid cell size in pixels
+
+  // Uniform shape sizes (constants)
+  const RECT_SIZE = 100;
+  const CIRCLE_RADIUS = 50;
 
   // Generate dynamic grid based on viewport
   const generateGrid = () => {
@@ -134,6 +96,22 @@ const Canvas = () => {
 
     return lines;
   };
+
+  if (isLoading) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading canvas...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -189,8 +167,8 @@ const Canvas = () => {
                   key={shape.id}
                   x={shape.x}
                   y={shape.y}
-                  width={shape.width}
-                  height={shape.height}
+                  width={RECT_SIZE}
+                  height={RECT_SIZE}
                   fill={shape.fill}
                   stroke="#666"
                   strokeWidth={2}
@@ -213,7 +191,7 @@ const Canvas = () => {
                   key={shape.id}
                   x={shape.x}
                   y={shape.y}
-                  radius={shape.radius}
+                  radius={CIRCLE_RADIUS}
                   fill={shape.fill}
                   stroke="#666"
                   strokeWidth={2}
@@ -236,7 +214,7 @@ const Canvas = () => {
                   key={shape.id}
                   x={shape.x}
                   y={shape.y}
-                  text={shape.text}
+                  text="Text"
                   fill={shape.fill}
                   fontSize={16}
                   fontFamily="Arial"
