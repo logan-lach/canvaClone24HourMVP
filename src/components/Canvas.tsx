@@ -4,11 +4,15 @@ import Sidebar from './Sidebar';
 import CoordinateDisplay from './CoordinateDisplay';
 import ZoomControls from './ZoomControls';
 import { useCanvasSync } from '../contexts/CanvasSyncContext';
+import { useCursorTracking } from '../contexts/CursorTrackingContext';
+import { useShapeLock } from '../contexts/ShapeLockContext';
 
 const Canvas = () => {
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { shapes, addShape, updateShape, isLoading } = useCanvasSync();
+  const { broadcastCursor } = useCursorTracking();
+  const { lockShape, unlockShape, isLocked, getShapeLock } = useShapeLock();
 
   // Get window dimensions
   const width = window.innerWidth;
@@ -117,6 +121,14 @@ const Canvas = () => {
     <div
       ref={containerRef}
       style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}
+      onMouseMove={(e) => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          const screenX = e.clientX - rect.left;
+          const screenY = e.clientY - rect.top;
+          broadcastCursor(screenX, screenY);
+        }
+      }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -161,6 +173,9 @@ const Canvas = () => {
 
           {/* Render shapes */}
           {shapes.map(shape => {
+            const locked = isLocked(shape.id);
+            const shapeLock = getShapeLock(shape.id);
+
             if (shape.type === 'rect') {
               return (
                 <Rect
@@ -170,11 +185,13 @@ const Canvas = () => {
                   width={RECT_SIZE}
                   height={RECT_SIZE}
                   fill={shape.fill}
-                  stroke="#666"
-                  strokeWidth={2}
+                  stroke={locked && shapeLock ? shapeLock.color : "#666"}
+                  strokeWidth={locked ? 4 : 2}
                   draggable={!draggingType}
                   onDragStart={(e) => {
                     e.cancelBubble = true;
+                    // Try to acquire lock, but allow drag regardless
+                    lockShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
@@ -182,6 +199,7 @@ const Canvas = () => {
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
                     updateShape(shape.id, e.target.x(), e.target.y());
+                    unlockShape(shape.id);
                   }}
                 />
               );
@@ -193,11 +211,13 @@ const Canvas = () => {
                   y={shape.y}
                   radius={CIRCLE_RADIUS}
                   fill={shape.fill}
-                  stroke="#666"
-                  strokeWidth={2}
+                  stroke={locked && shapeLock ? shapeLock.color : "#666"}
+                  strokeWidth={locked ? 4 : 2}
                   draggable={!draggingType}
                   onDragStart={(e) => {
                     e.cancelBubble = true;
+                    // Try to acquire lock, but allow drag regardless
+                    lockShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
@@ -205,6 +225,7 @@ const Canvas = () => {
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
                     updateShape(shape.id, e.target.x(), e.target.y());
+                    unlockShape(shape.id);
                   }}
                 />
               );
@@ -218,9 +239,13 @@ const Canvas = () => {
                   fill={shape.fill}
                   fontSize={16}
                   fontFamily="Arial"
+                  stroke={locked && shapeLock ? shapeLock.color : undefined}
+                  strokeWidth={locked ? 2 : 0}
                   draggable={!draggingType}
                   onDragStart={(e) => {
                     e.cancelBubble = true;
+                    // Try to acquire lock, but allow drag regardless
+                    lockShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
@@ -228,6 +253,7 @@ const Canvas = () => {
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
                     updateShape(shape.id, e.target.x(), e.target.y());
+                    unlockShape(shape.id);
                   }}
                 />
               );

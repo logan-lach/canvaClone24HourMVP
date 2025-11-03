@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -11,6 +10,7 @@ export type Shape = {
   y: number;
   fill: string;
   userId?: string;
+  dbId?: string;
 };
 
 interface CanvasSyncContextType {
@@ -27,7 +27,6 @@ export function CanvasSyncProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   // Fetch initial shapes from database
   useEffect(() => {
@@ -135,8 +134,6 @@ export function CanvasSyncProvider({ children }: { children: ReactNode }) {
       .subscribe((status) => {
         console.log('Realtime subscription status:', status);
       });
-
-    setChannel(realtimeChannel);
 
     return () => {
       console.log('Cleaning up realtime subscription');
