@@ -10,7 +10,7 @@ import { useShapeLock } from '../contexts/ShapeLockContext';
 const Canvas = () => {
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { shapes, addShape, updateShape, isLoading } = useCanvasSync();
+  const { shapes, addShape, updateShape, broadcastShapePosition, setLocallyDraggingShape, isLoading } = useCanvasSync();
   const { broadcastCursor } = useCursorTracking();
   const { lockShape, unlockShape, isLocked, getShapeLock } = useShapeLock();
 
@@ -192,14 +192,21 @@ const Canvas = () => {
                     e.cancelBubble = true;
                     // Try to acquire lock, but allow drag regardless
                     lockShape(shape.id);
+                    // Mark as locally dragging to prevent applying remote updates
+                    setLocallyDraggingShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
+                    // Broadcast real-time position to other users
+                    broadcastShapePosition(shape.id, e.target.x(), e.target.y());
                   }}
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
+                    // Save final position to database
                     updateShape(shape.id, e.target.x(), e.target.y());
                     unlockShape(shape.id);
+                    // Clear locally dragging flag
+                    setLocallyDraggingShape(null);
                   }}
                 />
               );
@@ -218,14 +225,21 @@ const Canvas = () => {
                     e.cancelBubble = true;
                     // Try to acquire lock, but allow drag regardless
                     lockShape(shape.id);
+                    // Mark as locally dragging to prevent applying remote updates
+                    setLocallyDraggingShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
+                    // Broadcast real-time position to other users
+                    broadcastShapePosition(shape.id, e.target.x(), e.target.y());
                   }}
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
+                    // Save final position to database
                     updateShape(shape.id, e.target.x(), e.target.y());
                     unlockShape(shape.id);
+                    // Clear locally dragging flag
+                    setLocallyDraggingShape(null);
                   }}
                 />
               );
@@ -246,14 +260,21 @@ const Canvas = () => {
                     e.cancelBubble = true;
                     // Try to acquire lock, but allow drag regardless
                     lockShape(shape.id);
+                    // Mark as locally dragging to prevent applying remote updates
+                    setLocallyDraggingShape(shape.id);
                   }}
                   onDragMove={(e) => {
                     e.cancelBubble = true;
+                    // Broadcast real-time position to other users
+                    broadcastShapePosition(shape.id, e.target.x(), e.target.y());
                   }}
                   onDragEnd={(e) => {
                     e.cancelBubble = true;
+                    // Save final position to database
                     updateShape(shape.id, e.target.x(), e.target.y());
                     unlockShape(shape.id);
+                    // Clear locally dragging flag
+                    setLocallyDraggingShape(null);
                   }}
                 />
               );

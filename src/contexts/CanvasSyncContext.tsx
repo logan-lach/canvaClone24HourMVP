@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -18,15 +19,23 @@ interface CanvasSyncContextType {
   addShape: (type: 'rect' | 'circle' | 'text', x: number, y: number) => Promise<void>;
   updateShape: (id: string, x: number, y: number) => Promise<void>;
   deleteShape: (id: string) => Promise<void>;
+  broadcastShapePosition: (shapeId: string, x: number, y: number) => void;
+  setLocallyDraggingShape: (shapeId: string | null) => void;
   isLoading: boolean;
 }
 
 const CanvasSyncContext = createContext<CanvasSyncContextType | undefined>(undefined);
 
+const THROTTLE_MS = 50; // Throttle drag broadcasts to 50ms (same as cursor tracking)
+
 export function CanvasSyncProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dragChannel, setDragChannel] = useState<RealtimeChannel | null>(null);
+  const lastBroadcastTime = useRef<number>(0);
+  const pendingBroadcast = useRef<{ shapeId: string; x: number; y: number } | null>(null);
+  const locallyDraggingShape = useRef<string | null>(null);
 
   // Fetch initial shapes from database
   useEffect(() => {
@@ -141,6 +150,112 @@ export function CanvasSyncProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Subscribe to drag position broadcasts
+  useEffect(() => {
+    if (!user) {
+      if (dragChannel) {
+        dragChannel.unsubscribe();
+        setDragChannel(null);
+      }
+      return;
+    }
+
+    console.log('Setting up drag broadcast channel...');
+    const channel = supabase.channel('shape-drag-positions');
+
+    channel
+      .on('broadcast', { event: 'drag-move' }, ({ payload }) => {
+        const { shapeId, x, y, userId: dragUserId } = payload as {
+          shapeId: string;
+          x: number;
+          y: number;
+          userId: string;
+        };
+
+        // Don't apply our own broadcasts
+        if (dragUserId === user.id) return;
+
+        // Don't update shapes we're currently dragging locally
+        if (locallyDraggingShape.current === shapeId) return;
+
+        // Update shape position in real-time
+        setShapes(prev =>
+          prev.map(shape =>
+            shape.id === shapeId ? { ...shape, x, y } : shape
+          )
+        );
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Drag broadcast channel subscribed');
+        }
+      });
+
+    setDragChannel(channel);
+
+    return () => {
+      console.log('Cleaning up drag broadcast channel');
+      channel.unsubscribe();
+    };
+  }, [user]);
+
+  // Broadcast shape position during drag (throttled)
+  const broadcastShapePosition = useCallback((shapeId: string, x: number, y: number) => {
+    if (!dragChannel || !user) return;
+
+    const now = Date.now();
+
+    // Throttle broadcasts
+    if (now - lastBroadcastTime.current < THROTTLE_MS) {
+      // Store pending broadcast
+      pendingBroadcast.current = { shapeId, x, y };
+      return;
+    }
+
+    // Send the broadcast
+    dragChannel.send({
+      type: 'broadcast',
+      event: 'drag-move',
+      payload: {
+        shapeId,
+        x,
+        y,
+        userId: user.id
+      }
+    });
+
+    lastBroadcastTime.current = now;
+    pendingBroadcast.current = null;
+  }, [dragChannel, user]);
+
+  // Handle pending broadcasts with interval
+  useEffect(() => {
+    const sendPendingInterval = setInterval(() => {
+      if (pendingBroadcast.current && dragChannel && user) {
+        const { shapeId, x, y } = pendingBroadcast.current;
+        const now = Date.now();
+
+        if (now - lastBroadcastTime.current >= THROTTLE_MS) {
+          dragChannel.send({
+            type: 'broadcast',
+            event: 'drag-move',
+            payload: {
+              shapeId,
+              x,
+              y,
+              userId: user.id
+            }
+          });
+
+          lastBroadcastTime.current = now;
+          pendingBroadcast.current = null;
+        }
+      }
+    }, THROTTLE_MS);
+
+    return () => clearInterval(sendPendingInterval);
+  }, [dragChannel, user]);
+
   const addShape = useCallback(async (type: 'rect' | 'circle' | 'text', x: number, y: number) => {
     const newShape: Shape = {
       id: `shape-${Date.now()}-${Math.random()}`,
@@ -248,11 +363,17 @@ export function CanvasSyncProvider({ children }: { children: ReactNode }) {
     }
   }, [shapes]);
 
+  const setLocallyDraggingShape = useCallback((shapeId: string | null) => {
+    locallyDraggingShape.current = shapeId;
+  }, []);
+
   const value = {
     shapes,
     addShape,
     updateShape,
     deleteShape,
+    broadcastShapePosition,
+    setLocallyDraggingShape,
     isLoading
   };
 
