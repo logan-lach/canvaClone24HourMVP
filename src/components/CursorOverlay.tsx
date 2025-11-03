@@ -1,9 +1,11 @@
 import { useCursorTracking } from '../contexts/CursorTrackingContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useViewport } from '../contexts/ViewportContext';
 
 export function CursorOverlay() {
   const { cursors } = useCursorTracking();
   const { user } = useAuth();
+  const { viewport } = useViewport();
 
   return (
     <div style={{
@@ -19,13 +21,18 @@ export function CursorOverlay() {
         // Don't show our own cursor
         if (cursor.userId === user?.id) return null;
 
+        // Convert world coordinates (received from broadcast) to screen coordinates
+        // Formula: screenX = worldX * zoom + position.x
+        const screenX = cursor.x * viewport.zoom + viewport.position.x;
+        const screenY = cursor.y * viewport.zoom + viewport.position.y;
+
         return (
           <div
             key={cursor.userId}
             style={{
               position: 'absolute',
-              left: cursor.x,
-              top: cursor.y,
+              left: screenX,
+              top: screenY,
               transform: 'translate(-2px, -2px)',
               transition: 'left 0.1s ease-out, top 0.1s ease-out'
             }}

@@ -6,6 +6,7 @@ import { PresenceProvider } from '../contexts/PresenceContext';
 import { CanvasSyncProvider } from '../contexts/CanvasSyncContext';
 import { CursorTrackingProvider } from '../contexts/CursorTrackingContext';
 import { ShapeLockProvider } from '../contexts/ShapeLockContext';
+import { ViewportProvider } from '../contexts/ViewportContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function CanvasPage() {
@@ -22,29 +23,31 @@ export default function CanvasPage() {
       <CanvasSyncProvider>
         <CursorTrackingProvider>
           <ShapeLockProvider>
-            <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-              <PresenceIndicators />
-              <button
-                onClick={handleLogout}
-                style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  right: '16px',
-                  padding: '8px 16px',
-                  backgroundColor: 'white',
-                  color: 'black',
-                  border: '1px solid black',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  zIndex: 1000
-                }}
-              >
-                Logout
-              </button>
-              <Canvas />
-              <CursorOverlay />
-            </div>
+            <ViewportProvider>
+              <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+                <PresenceIndicators />
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    position: 'absolute',
+                    bottom: '16px',
+                    right: '16px',
+                    padding: '8px 16px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                    border: '1px solid black',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    zIndex: 1000
+                  }}
+                >
+                  Logout
+                </button>
+                <Canvas />
+                <CursorOverlay />
+              </div>
+            </ViewportProvider>
           </ShapeLockProvider>
         </CursorTrackingProvider>
       </CanvasSyncProvider>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Line, Rect, Circle, Text } from 'react-konva';
 import Sidebar from './Sidebar';
 import CoordinateDisplay from './CoordinateDisplay';
@@ -6,6 +6,7 @@ import ZoomControls from './ZoomControls';
 import { useCanvasSync } from '../contexts/CanvasSyncContext';
 import { useCursorTracking } from '../contexts/CursorTrackingContext';
 import { useShapeLock } from '../contexts/ShapeLockContext';
+import { useViewport } from '../contexts/ViewportContext';
 
 const Canvas = () => {
   const stageRef = useRef<any>(null);
@@ -13,6 +14,7 @@ const Canvas = () => {
   const { shapes, addShape, updateShape, broadcastShapePosition, setLocallyDraggingShape, isLoading } = useCanvasSync();
   const { broadcastCursor } = useCursorTracking();
   const { lockShape, unlockShape, isLocked, getShapeLock } = useShapeLock();
+  const { setViewport } = useViewport();
 
   // Get window dimensions
   const width = window.innerWidth;
@@ -29,6 +31,11 @@ const Canvas = () => {
 
   // Drag state
   const [draggingType, setDraggingType] = useState<string | null>(null);
+
+  // Sync viewport state to context whenever zoom or position changes
+  useEffect(() => {
+    setViewport({ zoom, position });
+  }, [zoom, position, setViewport]);
 
   // Zoom handlers
   const handleZoomIn = () => {
@@ -126,7 +133,9 @@ const Canvas = () => {
         if (rect) {
           const screenX = e.clientX - rect.left;
           const screenY = e.clientY - rect.top;
-          broadcastCursor(screenX, screenY);
+          // Convert screen coordinates to world coordinates before broadcasting
+          const worldCoords = getWorldCoordinates(screenX, screenY);
+          broadcastCursor(worldCoords.x, worldCoords.y);
         }
       }}
       onDragOver={(e) => e.preventDefault()}
